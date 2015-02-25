@@ -61,25 +61,15 @@ class Application(Frame):
         self.display_frame.pack(side=TOP, fill=BOTH, expand=True)
         # Set initial display layout
         self.set_fonts()
-        # height = math.ceil(len(self.TCSC_fonts) / 5)
-        # width = 5
-        # fonts = self.font_gen()
-        # for r in range (height):
-        #     for c in range (width):
-        #         Label(self.display_frame,
-        #               text='比一笔',
-        #               relief=RIDGE, font=('Kaiti SC', 50)).grid(row=r, column=c)
-
-
-
 
     def set_fonts(self):
+        char_set = self.select_charset()
         chars = self.char_entry.get()
         self.display_frame.destroy()
         self.display_frame = LabelFrame(self)
         self.display_frame.pack(side=TOP, fill=BOTH, expand=True)
 
-        height = math.ceil(len(self.TCSC_fonts) / 4)
+        height = math.ceil(len(char_set) / 4)
         width = 4
         fonts = self.font_gen()
         try:
@@ -95,8 +85,21 @@ class Application(Frame):
         except StopIteration:
             pass
 
+    def select_charset(self):
+        mode = self.var.get()
+        char_set = []
+        if mode == 1:
+            char_set = self.TC_fonts
+        elif mode == 2:
+            char_set = self.SC_fonts
+        elif mode == 3:
+            char_set = self.TCSC_fonts
+        return char_set
+
+
     def font_gen(self):
-        for font in self.TCSC_fonts:
+        char_set = self.select_charset()
+        for font in char_set:
             yield font
 
 root = Tk()
