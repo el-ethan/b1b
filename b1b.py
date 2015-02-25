@@ -1,4 +1,5 @@
-# TODO: max of 4 characters can be entered, buttons on top
+# TODO: max of 4 characters can be entered, display font on mouseover
+import re
 from tkinter import *
 import tkinter.font
 import math
@@ -48,7 +49,7 @@ class Application(Frame):
 
         top_left_frame = Frame(top_frame, padx=10)
         self.char_entry = Entry(top_left_frame)
-        self.char_entry.insert('0', '比一笔')
+        self.char_entry.insert('0', '笔难尽述')
         self.char_entry.pack(side=TOP, fill=BOTH, expand=True)
         show_b = Button(top_left_frame, text='Show', command=self.set_fonts)
         quit_b = Button(top_left_frame, text='Quit', command=self.quit)
@@ -56,6 +57,12 @@ class Application(Frame):
         top_left_frame.pack(side=LEFT, fill=BOTH, expand=True)
         show_b.pack(side=LEFT, fill=BOTH, expand=True)
         quit_b.pack(side=LEFT, fill=BOTH, expand=True)
+
+        self.font_info = Label(self,
+                               text='font info',
+                               bg='grey',
+                               relief=SUNKEN)
+        self.font_info.pack(side=TOP, fill=BOTH, expand=True)
 
         self.display_frame = LabelFrame(self)
         self.display_frame.pack(side=TOP, fill=BOTH, expand=True)
@@ -79,9 +86,11 @@ class Application(Frame):
                         L = Label(self.display_frame,
                               text=chars, relief=RIDGE,
                               font=(next(fonts), 55),
-                              padx=10,
+                              padx=30,
                               pady=10)
+                        L.bind("<Enter>", self.test_callback)
                         L.grid(row=r, column=c, sticky=N+E+S+W)
+
         except StopIteration:
             pass
 
@@ -101,6 +110,13 @@ class Application(Frame):
         char_set = self.select_charset()
         for font in char_set:
             yield font
+
+    def test_callback(self, event):
+        name = event.widget.cget('font')
+        name = re.sub('[{}(55)]', '', name)
+        self.font_info.config(text=name)
+
+
 
 root = Tk()
 root.resizable(0, 0)
