@@ -1,19 +1,30 @@
 from tkinter import *
-
-ALL = N+E+S+W
+import tkinter.font
+import math
 
 class Application(Frame):
 
     def __init__(self, master=None):
         Frame.__init__(self, master)
         self.pack(fill=BOTH, expand=True)
+
+        all_fonts = tkinter.font.families()
+        self.TC_fonts = []
+        self.SC_fonts = []
+        for font in all_fonts:
+            if 'SC' in font:
+                self.SC_fonts.append(font)
+            elif ' TC' in font:
+                self.TC_fonts.append(font)
+        self.TCSC_fonts = self.SC_fonts + self.TC_fonts
+
         self.create_widgets()
 
     def create_widgets(self):
         left_frame = Frame(self)
+        self.char_entry = Entry(left_frame, text='Type characters here')
         left_frame.pack(side=LEFT, fill=BOTH, expand=True)
-        char_entry = Entry(left_frame, text='Type characters here')
-        char_entry.pack(side=TOP, fill=BOTH, expand=True)
+        self.char_entry.pack(side=TOP, fill=BOTH, expand=True)
 
         var = IntVar()
         r1 = Radiobutton(left_frame,
@@ -33,21 +44,58 @@ class Application(Frame):
         r3.pack(side=TOP, fill=BOTH, expand=True)
 
         button_frame = Frame(left_frame)
+        show_b = Button(button_frame, text='Show', command=self.set_fonts)
+        quit_b = Button(button_frame, text='Quit', command=self.quit)
         button_frame.pack(side=BOTTOM, fill=BOTH, expand=True)
-        show_b = Button(button_frame, text='Show')
-        quit_b = Button(button_frame, text='Quit')
         show_b.pack(side=LEFT, fill=BOTH, expand=True)
         quit_b.pack(side=LEFT, fill=BOTH, expand=True)
 
-        display_frame = LabelFrame(self)
-        display_frame.pack(side=RIGHT, fill=BOTH, expand=True)
-
-        display_font = ('Kaiti SC', 24)
+        self.display_frame = LabelFrame(self)
+        self.display_frame.pack(side=RIGHT, fill=BOTH, expand=True)
+        display_font = ('Kaiti SC', 50)
         for r in range (5):
             for c in range (3):
-                Label(display_frame,
+                Label(self.display_frame,
                       text='比一笔',
                       relief=RIDGE, font=display_font).grid(row=r, column=c)
+
+
+
+
+    def set_fonts(self):
+        chars = self.char_entry.get()
+        self.display_frame.destroy()
+        self.display_frame = LabelFrame(self)
+        self.display_frame.pack(side=RIGHT, fill=BOTH, expand=True)
+
+        height = 10
+        width =  math.ceil(len(self.SC_fonts) / 10)    # Need to round len up
+        fonts = self.font_gen()
+        try:
+            for r in range(height):
+                for c in range(width):
+
+                        Label(self.display_frame,
+                              text=chars, relief=RIDGE,
+                              font=(next(fonts), 50)).grid(row=r, column=c, sticky=N+E+S+W)
+        except StopIteration:
+            pass
+
+    def font_gen(self):
+
+        all_fonts = tkinter.font.families()
+        self.TC_fonts = []
+        self.SC_fonts = []
+        for font in all_fonts:
+            if 'SC' in font:
+                self.SC_fonts.append(font)
+            elif ' TC' in font:
+                self.TC_fonts.append(font)
+        self.TCSC_fonts = self.SC_fonts + self.TC_fonts
+        for font in self.SC_fonts:
+            yield font
+
+
 
 
 
