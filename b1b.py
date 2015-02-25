@@ -27,19 +27,20 @@ class Application(Frame):
 
         top_right_frame = Frame(top_frame, padx=10)
         top_right_frame.pack(side=RIGHT)
-        var = IntVar()
+        self.var = IntVar()
         r1 = Radiobutton(top_right_frame,
-                         variable=var,
+                         variable=self.var,
                          value=1,
                          text='Traditional')
         r2 = Radiobutton(top_right_frame,
-                         variable=var,
+                         variable=self.var,
                          value=2,
                          text='Simplified')
         r3 = Radiobutton(top_right_frame,
-                         variable=var,
+                         variable=self.var,
                          value=3,
                          text='TC & SC')
+        self.var.set(3)
         r1.pack(side=TOP, fill=BOTH, expand=True)
         r2.pack(side=TOP, fill=BOTH, expand=True)
         r3.pack(side=TOP, fill=BOTH, expand=True)
