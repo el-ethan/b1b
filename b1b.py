@@ -23,7 +23,8 @@ class Application(Frame):
 
     def create_widgets(self):
         top_frame = Frame(self)
-        self.char_entry = Entry(top_frame, text='Type characters here')
+        self.char_entry = Entry(top_frame)
+        self.char_entry.insert('0', '比一笔')
         top_frame.pack(side=TOP, fill=BOTH, expand=True)
         self.char_entry.pack(side=TOP, fill=BOTH, expand=True)
 
@@ -53,12 +54,15 @@ class Application(Frame):
 
         self.display_frame = LabelFrame(self)
         self.display_frame.pack(side=RIGHT, fill=BOTH, expand=True)
-        display_font = ('Kaiti SC', 50)
-        for r in range (5):
-            for c in range (3):
-                Label(self.display_frame,
-                      text='比一笔',
-                      relief=RIDGE, font=display_font).grid(row=r, column=c)
+        self.set_fonts()
+        # height = math.ceil(len(self.TCSC_fonts) / 5)
+        # width = 5
+        # fonts = self.font_gen()
+        # for r in range (height):
+        #     for c in range (width):
+        #         Label(self.display_frame,
+        #               text='比一笔',
+        #               relief=RIDGE, font=('Kaiti SC', 50)).grid(row=r, column=c)
 
 
 
