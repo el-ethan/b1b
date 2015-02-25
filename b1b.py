@@ -22,21 +22,21 @@ class Application(Frame):
         self.create_widgets()
 
     def create_widgets(self):
-        left_frame = Frame(self)
-        self.char_entry = Entry(left_frame, text='Type characters here')
-        left_frame.pack(side=TOP, fill=BOTH, expand=True)
+        top_frame = Frame(self)
+        self.char_entry = Entry(top_frame, text='Type characters here')
+        top_frame.pack(side=TOP, fill=BOTH, expand=True)
         self.char_entry.pack(side=TOP, fill=BOTH, expand=True)
 
         var = IntVar()
-        r1 = Radiobutton(left_frame,
+        r1 = Radiobutton(top_frame,
                          variable=var,
                          value=1,
                          text='Traditional')
-        r2 = Radiobutton(left_frame,
+        r2 = Radiobutton(top_frame,
                          variable=var,
                          value=2,
                          text='Simplified')
-        r3 = Radiobutton(left_frame,
+        r3 = Radiobutton(top_frame,
                          variable=var,
                          value=3,
                          text='TC & SC')
@@ -44,7 +44,7 @@ class Application(Frame):
         r2.pack(side=TOP, fill=BOTH, expand=True)
         r3.pack(side=TOP, fill=BOTH, expand=True)
 
-        button_frame = Frame(left_frame)
+        button_frame = Frame(top_frame)
         show_b = Button(button_frame, text='Show', command=self.set_fonts)
         quit_b = Button(button_frame, text='Quit', command=self.quit)
         button_frame.pack(side=BOTTOM, fill=BOTH, expand=True)
@@ -72,15 +72,18 @@ class Application(Frame):
         height = math.ceil(len(self.TCSC_fonts) / 5)
         width = 5
         fonts = self.font_gen()
-        # try:
-        for r in range(height):
-            for c in range(width):
+        try:
+            for r in range(height):
+                for c in range(width):
 
-                    Label(self.display_frame,
-                          text=chars, relief=RIDGE,
-                          font=(next(fonts), 55)).grid(row=r, column=c, sticky=N+E+S+W)
-        # except StopIteration:
-        #     pass
+                        L = Label(self.display_frame,
+                              text=chars, relief=RIDGE,
+                              font=(next(fonts), 55),
+                              padx=10,
+                              pady=10)
+                        L.grid(row=r, column=c, sticky=N+E+S+W)
+        except StopIteration:
+            pass
 
     def font_gen(self):
         for font in self.TCSC_fonts:
