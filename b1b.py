@@ -1,4 +1,4 @@
-# TODO: max of 4 characters can be entered, display font on mouseover
+# TODO: max of 4 characters can be entered, enable Chinese typing
 import re
 from tkinter import *
 import tkinter.font
@@ -8,6 +8,7 @@ class Application(Frame):
 
     def __init__(self, master=None):
         Frame.__init__(self, master)
+        self.tk.call("tk", "useinputmethods", "0")
         self.pack(fill=BOTH, expand=True)
 
         all_fonts = tkinter.font.families()
@@ -49,7 +50,7 @@ class Application(Frame):
 
         top_left_frame = Frame(top_frame, padx=10)
         self.char_entry = Entry(top_left_frame)
-        self.char_entry.insert('0', '笔难尽述')
+        self.char_entry.insert('0', '字')
         self.char_entry.pack(side=TOP, fill=BOTH, expand=True)
         show_b = Button(top_left_frame, text='Show', command=self.set_fonts)
         quit_b = Button(top_left_frame, text='Quit', command=self.quit)
@@ -119,6 +120,7 @@ class Application(Frame):
 
 
 root = Tk()
+
 root.resizable(0, 0)
 app = Application(master=root)
 app.mainloop()
