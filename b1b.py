@@ -34,7 +34,7 @@ import tkinter.font
 import math
 
 class Application(Frame):
-
+    """Main application for b1b"""
     def __init__(self, master=None):
         Frame.__init__(self, master)
         self.tk.call("tk", "useinputmethods", "0")
@@ -153,6 +153,7 @@ class Application(Frame):
             yield font
 
     def callback(self, event):
+        """Generate text for font info display"""
         name = event.widget.cget('font')
         name = re.sub('[{}(55)]', '', name)
         self.font_info.config(text=name)
