@@ -6,7 +6,7 @@ This is very much a work in progress, and my first major project using Python an
 
 ##Notes on usage:
 
-* The app does not currently support MAC OS X Chinese input methods, so you must input text by pasting it if you are on a MAC. 
+* The app does not currently support Mac OS X Chinese input methods, so you must input text by pasting it if you are on a Mac. 
 * Once you have pasted new text into the entry box, click 'Show' to refresh the display. 
 * Although you can enter an arbitrarily long string of characters into the entry box, the display will grow too large to be useful with too many characters, so it is best to limit your entry to A MAX OF 4 CHARACTERS at a time.
 * You can mix Simplified and Traditional characters in your input if you wish.
