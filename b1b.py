@@ -37,7 +37,6 @@ class Application(Frame):
     """Main application for b1b"""
     def __init__(self, master=None):
         Frame.__init__(self, master)
-        self.tk.call("tk", "useinputmethods", "0")
         self.pack(fill=BOTH, expand=True)
 
         all_fonts = tkinter.font.families()
