@@ -10,75 +10,69 @@ class Application(Frame):
     def __init__(self, master=None):
         Frame.__init__(self, master)
         self.pack(fill=BOTH, expand=True)
-
         self.all_fonts = tkinter.font.families()
+        self.build_widgets()
 
-        self.build_fontlists()
-        self.build_test_area()
+    def build_widgets(self):
+        ###### Left Frame ######
+        left_frame = LabelFrame(self)
+        left_frame.pack(side=LEFT, fill=BOTH, expand=True)
 
-    def build_fontlists(self):
-        left_frame1 = LabelFrame(self)
-        left_frame1.pack(side=LEFT, fill=BOTH, expand=True)
-
-        Label(left_frame1,
-              text='All Fonts',
+        Label(left_frame,
+              text='Available Fonts',
               font=('Avenir Next', 20),
               bg='cornflower blue',
               bd=10).pack(side=TOP, fill=BOTH, expand=True)
 
-        self.font_list1 = Listbox(left_frame1,
+        self.font_list = Listbox(left_frame,
                                   width=30,
                                   height=20,
                                   font=('Avenir Next', 12))
-        self.font_list1.pack(side=TOP, fill=BOTH, expand=True)
+        self.font_list.pack(side=TOP, fill=BOTH, expand=True)
 
         for font in self.all_fonts:
-            self.font_list1.insert(END, font)
-            self.font_list1.bind('<KeyRelease>', self.change_font1)
+            self.font_list.insert(END, font)
+            self.font_list.bind('<Return>', self.change_font)
 
-        left_frame2 = LabelFrame(self)
-        left_frame2.pack(side=LEFT, fill=BOTH, expand=True)
+        ###### Right Frame ######
+        right_frame = LabelFrame(self, padx=100, pady=100)
+        right_frame.pack(side=LEFT, fill=BOTH, expand=True)
 
-        Label(left_frame2,
-              text='Potential Chinese Fonts',
-              font=('Avenir Next', 20),
-              bg='cornflower blue',
-              bd=10).pack(side=TOP, fill=BOTH, expand=True)
-
-        self.font_list2 = Listbox(left_frame2,
-                                  width=30,
-                                  height=20,
-                                  font=('Avenir Next', 12))
-        self.font_list2.pack(side=TOP, fill=BOTH, expand=True)
-
-        # Find potential Chinese fonts
-        for font in self.all_fonts:
-            if any((('ti ' in font),
-                   ('TC' in font),
-                   ('SC' in font),
-                   ('liU' in font),
-                   ('gb' in font),
-                   ('GB' in font),
-                   (font.endswith('ti')))):
-                self.font_list2.insert(END, font)
-                self.font_list2.bind('<KeyRelease>', self.change_font2)
-
-    def build_test_area(self):
-        test_frame = LabelFrame(self, padx=100, pady=100)
-        test_frame.pack(side=LEFT, fill=BOTH, expand=True)
-
-        self.test_display = Label(test_frame,
+        self.test_display = Label(right_frame,
                              text='繁體字\n简体字',
-                             font=('', 60))
-        self.test_display.pack(side=RIGHT, fill=BOTH, expand=True)
+                             font=('', 60),
+                             pady=50)
+        self.test_display.pack(side=TOP, fill=BOTH, expand=True)
 
-    def change_font1(self, event):
-        font = self.font_list1.get(ACTIVE)
+        add_sc = Button(right_frame,
+                            text="Add to SC Font List",
+                            command=self.add_sc_font)
+        add_sc.pack(side=TOP, fill=BOTH, expand=True)
+
+        add_tc = Button(right_frame,
+                            text="Add to TC Font List",
+                            command=self.add_tc_font,
+                            pady=20)
+        add_tc.pack(side=TOP, fill=BOTH, expand=True)
+
+        self.add_confirm = Label(right_frame)
+        self.add_confirm.pack(side=TOP, fill=BOTH, expand=True)
+
+    def change_font(self, event):
+        font = self.font_list.get(ACTIVE)
         self.test_display.config(font=(font, 55))
 
-    def change_font2(self, event):
-        font = self.font_list2.get(ACTIVE)
-        self.test_display.config(font=(font, 55))
+    def add_sc_font(self):
+        font = self.font_list.get(ACTIVE)
+        with open('sc_fonts.txt', 'a') as f:
+            f.write(font + '\n')
+        self.add_confirm.config(text="Added '%s' to sc_fonts.txt" % font)
+
+    def add_tc_font(self):
+        font = self.font_list.get(ACTIVE)
+        with open('tc_fonts.txt', 'a') as f:
+            f.write(font + '\n')
+        self.add_confirm.config(text="Added '%s' to tc_fonts.txt" % font)
 
 root = Tk()
 root.resizable(0, 0)
