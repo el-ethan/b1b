@@ -3,8 +3,14 @@ b1b (比一笔）is a GUI application for comparing Chinese fonts.
 
 A few notes on operation:
 
+* For this app to work properly SC_fonts and TC_fonts lists will need
+to be populated. You can modify the code to add the fonts manually or
+you can first run the z1z font finder utility to add the fonts you want
+to this app.
+
 * The app does not currently support MAC OS X Chinese input methods,
-so you must input text by pasting it.
+so you must input text by pasting it if you are using OS X. This is a
+known issue with tkinter.
 
 * Once you have pasted new text into the entry box, click 'Show'
 to refresh the display.
@@ -15,6 +21,9 @@ characters, so it is best to limit your entry to A MAX OF 4 CHARACTERS at
 a time.
 
 * You can mix Simplified and Traditional characters in your input if you wish.
+However, keep in mind that some characters may not display properly in fonts
+meant specifically for SC or TC, and will default to some other font, probably
+heiti.
 
 * Use the buttons on the top right to customize the display for a particular
 type of characters. Traditional and Simplified will display together by
@@ -22,15 +31,10 @@ default.
 
 * Hover the mouse arrow over characters to display their font information in
 the gray bar below the text entry box.
-
-* Depending on your OS, you may have fewer/more Chinese system fonts than
-the app was intended to be used with, so it is normal if some of the cells
-in the character display area are blank.
 """
-
+# TODO: Have font lists populate for sc_fonts.txt and tc_fonts.txt
 import re
 from tkinter import *
-import tkinter.font
 import math
 
 class Application(Frame):
@@ -39,15 +43,13 @@ class Application(Frame):
         Frame.__init__(self, master)
         self.pack(fill=BOTH, expand=True)
 
-        all_fonts = tkinter.font.families()
-        self.TC_fonts = []  # 9 total on my Mac
-        self.SC_fonts = []  # 15 total on my Mac
-        for font in all_fonts:
-            if 'SC' in font:
-                self.SC_fonts.append(font)
-            elif ' TC' in font:
-                self.TC_fonts.append(font)
-        self.TCSC_fonts = self.SC_fonts + self.TC_fonts
+        with open('sc_fonts.txt', 'r') as f:
+            self.SC_fonts = f.readlines()
+
+        with open('tc_fonts.txt', 'r') as f:
+            self.TC_fonts = f.readlines()
+
+        self.SCTC_fonts = self.SC_fonts + self.TC_fonts
         self.create_widgets()
 
     def create_widgets(self):
@@ -141,7 +143,7 @@ class Application(Frame):
         elif mode == 2:
             char_set = self.SC_fonts
         elif mode == 3:
-            char_set = self.TCSC_fonts
+            char_set = self.SCTC_fonts
         return char_set
 
 
@@ -149,7 +151,7 @@ class Application(Frame):
         """Generate fonts for labels in display"""
         char_set = self.select_charset()
         for font in char_set:
-            yield font
+            yield font.strip()
 
     def callback(self, event):
         """Generate text for font info display"""
