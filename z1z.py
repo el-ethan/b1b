@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 """
 z1z （找一找) is a utility for displaying the fonts installed on your system
 
