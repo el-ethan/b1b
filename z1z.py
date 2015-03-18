@@ -1,5 +1,5 @@
 """
-font_find is a utility for displaying the fonts installed on your system
+z1z （找一找) is a utility for displaying the fonts installed on your system
 
 When a font in the listbox is selected, pressing return will change the
 character display to that the characters are displayed with the selected
