@@ -34,11 +34,13 @@ default.
 the blue bar below the text entry box.
 """
 import re
-from tkinter import *
 import math
+from tkinter import *
+from tkinter.messagebox import showwarning
+
 
 class Application(Frame):
-    """Main application for b1b"""
+
     def __init__(self, master=None):
         Frame.__init__(self, master)
         self.pack(fill=BOTH, expand=True)
@@ -101,6 +103,14 @@ class Application(Frame):
         """Set font display area"""
         char_set = self.select_charset()
         chars = self.char_entry.get()
+
+        if len(chars) > 4:
+            showwarning("Too many characters!",
+                        "Input too long, trimmed to 4 characters",
+                        default='ok')
+            chars = chars[:4]
+            self.char_entry.delete(4, END)
+        # TODO: come up with better way to refresh display. If there is one...
         self.display_frame.destroy()
         self.display_frame = LabelFrame(self)
         self.display_frame.pack(side=TOP, fill=BOTH, expand=True)
