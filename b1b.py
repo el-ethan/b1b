@@ -30,9 +30,9 @@ type of characters. Traditional and Simplified will display together by
 default.
 
 * Hover the mouse arrow over characters to display their font information in
-the gray bar below the text entry box.
+the blue bar below the text entry box.
 """
-# TODO: Have font lists populate for sc_fonts.txt and tc_fonts.txt
+
 import re
 from tkinter import *
 import math
@@ -53,14 +53,9 @@ class Application(Frame):
         self.create_widgets()
 
     def create_widgets(self):
-        ##############################
-        # Frame for operation widgets
-        ##############################
         top_frame = Frame(self)
         top_frame.pack(side=TOP, fill=BOTH, expand=True)
-        ##############################
-        # Radio button frame and buttons
-        ##############################
+
         top_right_frame = Frame(top_frame, padx=10)
         top_right_frame.pack(side=RIGHT)
         self.var = IntVar()
@@ -80,9 +75,7 @@ class Application(Frame):
         r1.pack(side=TOP, fill=BOTH, expand=True)
         r2.pack(side=TOP, fill=BOTH, expand=True)
         r3.pack(side=TOP, fill=BOTH, expand=True)
-        ##############################
-        # Character entry, Show/Quit buttons
-        ##############################
+
         top_left_frame = Frame(top_frame, padx=10)
         self.char_entry = Entry(top_left_frame)
         self.char_entry.insert('0', '字')
@@ -92,17 +85,13 @@ class Application(Frame):
         top_left_frame.pack(side=LEFT, fill=BOTH, expand=True)
         show_b.pack(side=LEFT, fill=BOTH, expand=True)
         quit_b.pack(side=LEFT, fill=BOTH, expand=True)
-        ##############################
-        # Font info display
-        ##############################
+
         self.font_info = Label(self,
                                text='font info',
-                               bg='grey',
+                               bg='cornflower blue',
                                relief=SUNKEN)
         self.font_info.pack(side=TOP, fill=BOTH, expand=True)
-        ##############################
-        # Character display
-        ##############################
+
         self.display_frame = LabelFrame(self)
         self.display_frame.pack(side=TOP, fill=BOTH, expand=True)
         # Set initial display layout
