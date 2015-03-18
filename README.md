@@ -4,14 +4,39 @@ b1b (比一笔) is a tool for comparing how Chinese characters are represented u
 
 This is very much a work in progress, and my first major project using Python and the tkinter module. Constructive feedback is more than welcome!
 
-##Notes on usage:
+## A few notes on operation:
 
-* The app does not currently support Mac OS X Chinese input methods, so you must input text by pasting it if you are on a Mac. 
-* Once you have pasted new text into the entry box, click 'Show' to refresh the display. 
-* Although you can enter an arbitrarily long string of characters into the entry box, the display will grow too large to be useful with too many characters, so it is best to limit your entry to A MAX OF 4 CHARACTERS at a time.
+* For this app to work properly SC_fonts and TC_fonts lists will need
+to be populated. You can modify the code to add the fonts manually or
+you can first run the z1z font finder utility to add the fonts you want
+to this app.
+
+* The app does not currently support MAC OS X Chinese input methods,
+so you must input text by pasting it if you are using OS X. This is a
+known issue with tkinter.
+
+* Once you have pasted new text into the entry box, click 'Show'
+to refresh the display.
+
+* Although you can enter an arbitrarily long string of characters into the
+entry box, the display will grow too large to be useful with too many
+characters, so it is best to limit your entry to A MAX OF 4 CHARACTERS at
+a time.
+
 * You can mix Simplified and Traditional characters in your input if you wish.
-* Use the buttons on the top right to customize the display for a particular type of characters. Traditional and Simplified will display together by default.
-* Hover the mouse arrow over characters to display their font information in the gray bar below the text entry box.
-* Font information is gathered automatically. The Chinese fonts on my version of OS X have either TC (Traditional Chinese) or SC (Simplified Chinese) at the end of their names, and so font information is gathered this way. This means that in order for the app to work on other OSs, you must modify how fonts or collected - or, if you know which Chinese fonts are available on your system, you can add them manually to the TC_fonts and SC_fonts lists in the script.
-* The number of fonts affects the size of the display, and you may also see some blank cells depending on the number of fonts.
+However, keep in mind that some characters may not display properly in fonts
+meant specifically for SC or TC, and will default to some other font, probably
+heiti.
+
+* Use the buttons on the top right to customize the display for a particular
+type of characters. Traditional and Simplified will display together by
+default.
+
+* Hover the mouse arrow over characters to display their font information in
+the gray bar below the text entry box.
+
+# z1z 
+
+z1z (找一找) is a tool to find fonts on your system to use with b1b. Fonts selected in this app can be automatically sent to files that can be used to populate font lists in b1b.
+
 
