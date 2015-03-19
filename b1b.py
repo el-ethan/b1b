@@ -33,11 +33,14 @@ default.
 * Hover the mouse arrow over characters to display their font information in
 the blue bar below the text entry box.
 """
+# TODO: don't name widgets that don't need it.
 import re
 import math
+import shelve
+import os
 from tkinter import *
 import tkinter.font
-from tkinter.messagebox import showwarning
+from tkinter.messagebox import showwarning, askokcancel
 
 class Application(Frame):
 
@@ -57,7 +60,8 @@ class Application(Frame):
         menu.add_cascade(label="File", menu=file_menu)
         file_menu.add_command(label="Open Font Picker",
                               command=self.open_font_picker)
-
+        file_menu.add_command(label="Clear All Lists",
+                              command=self.clear_lists)
     def open_font_picker(self):
         """Open font picker and update b1b display once picker is closed"""
         w = FontPicker()
@@ -66,13 +70,12 @@ class Application(Frame):
         self.set_fonts()
 
     def get_fonts(self):
-        """Get fonts from text files"""
-        with open('sc_fonts.txt', 'r') as f:
-            self.SC_fonts = f.readlines()
-        with open('tc_fonts.txt', 'r') as f:
-            self.TC_fonts = f.readlines()
+        """Get fonts from shelve db"""
+        with shelve.open('sc_fonts') as db:
+            self.SC_fonts = list(db.keys())
+        with shelve.open('tc_fonts') as db:
+            self.TC_fonts = list(db.keys())
         self.SCTC_fonts = self.SC_fonts + self.TC_fonts
-
 
     def draw_widgets(self):
         """Draw widgets for main app"""
@@ -166,7 +169,6 @@ class Application(Frame):
             char_set = self.SCTC_fonts
         return char_set
 
-
     def font_gen(self):
         """Generate fonts for labels in display"""
         char_set = self.select_charset()
@@ -178,6 +180,18 @@ class Application(Frame):
         name = event.widget.cget('font')
         name = re.sub('[{}(55)]', '', name)
         self.font_info.config(text=name)
+
+    def clear_lists(self):
+        if (askokcancel("WARNING!",
+                        "Are you sure you want to clear all lists?"
+                        "\nThis action cannot be undone.",
+                        default='cancel')):
+            shelves = ['tc_fonts', 'sc_fonts']
+            for shelf in shelves:
+                with shelve.open(shelf) as db:
+                    db.clear()
+        self.get_fonts()
+        self.set_fonts()
 
 class FontPicker(Toplevel):
 
@@ -204,7 +218,6 @@ class FontPicker(Toplevel):
         for font in self.all_fonts:
             self.font_list.insert(END, font)
             self.font_list.bind('<Return>', self.change_font)
-
         ###### Right Frame ######
         right_frame = LabelFrame(self)
         right_frame.pack(side=RIGHT, fill=BOTH, expand=True)
@@ -223,8 +236,7 @@ class FontPicker(Toplevel):
 
         add_tc = Button(right_frame,
                             text="Add to TC Font List",
-                            command=self.add_tc_font,
-                            pady=20)
+                            command=self.add_tc_font)
         add_tc.pack(side=TOP, fill=BOTH, expand=True)
         # Display message when font is added
         self.add_confirm = Label(right_frame)
@@ -238,15 +250,15 @@ class FontPicker(Toplevel):
     def add_sc_font(self):
         """Add selected font to sc_fonts.txt and show confirmation message"""
         font = self.font_list.get(ACTIVE)
-        with open('sc_fonts.txt', 'a') as f:
-            f.write(font + '\n')
+        with shelve.open('sc_fonts') as db:
+            db[font] = font
         self.add_confirm.config(text="Added '%s' to sc_fonts.txt" % font)
 
     def add_tc_font(self):
         """Add selected font to tc_fonts.txt and show confirmation message"""
         font = self.font_list.get(ACTIVE)
-        with open('tc_fonts.txt', 'a') as f:
-            f.write(font + '\n')
+        with shelve.open('tc_fonts') as db:
+            db[font] = font
         self.add_confirm.config(text="Added '%s' to tc_fonts.txt" % font)
 
 root = Tk()
