@@ -36,25 +36,46 @@ the blue bar below the text entry box.
 import re
 import math
 from tkinter import *
+import tkinter.font
 from tkinter.messagebox import showwarning
-
 
 class Application(Frame):
 
     def __init__(self, master=None):
+
         Frame.__init__(self, master)
         self.pack(fill=BOTH, expand=True)
+        self.get_fonts()
+        self.draw_widgets()
 
+        if not self.SCTC_fonts:
+            self.open_font_picker()
+
+        menu = Menu(root)
+        root.config(menu=menu)
+        file_menu = Menu(menu)
+        menu.add_cascade(label="File", menu=file_menu)
+        file_menu.add_command(label="Open Font Picker",
+                              command=self.open_font_picker)
+
+    def open_font_picker(self):
+        """Open font picker and update b1b display once picker is closed"""
+        w = FontPicker()
+        w.wait_window(w)
+        self.get_fonts()
+        self.set_fonts()
+
+    def get_fonts(self):
+        """Get fonts from text files"""
         with open('sc_fonts.txt', 'r') as f:
             self.SC_fonts = f.readlines()
-
         with open('tc_fonts.txt', 'r') as f:
             self.TC_fonts = f.readlines()
-
         self.SCTC_fonts = self.SC_fonts + self.TC_fonts
-        self.create_widgets()
 
-    def create_widgets(self):
+
+    def draw_widgets(self):
+        """Draw widgets for main app"""
         top_frame = Frame(self)
         top_frame.pack(side=TOP, fill=BOTH, expand=True)
 
@@ -127,7 +148,7 @@ class Application(Frame):
                               font=(next(fonts), 55),
                               padx=30,
                               pady=10)
-                        L.bind("<Enter>", self.callback)
+                        L.bind("<Enter>", self.show_font_info)
                         L.grid(row=r, column=c, sticky=N+E+S+W)
 
         except StopIteration:
@@ -152,16 +173,86 @@ class Application(Frame):
         for font in char_set:
             yield font.strip()
 
-    def callback(self, event):
+    def show_font_info(self, event):
         """Generate text for font info display"""
         name = event.widget.cget('font')
         name = re.sub('[{}(55)]', '', name)
         self.font_info.config(text=name)
 
+class FontPicker(Toplevel):
 
+    def __init__(self, master=None):
+        Toplevel.__init__(self, master)
+        self.all_fonts = tkinter.font.families()
+        self.draw_widgets()
+
+    def draw_widgets(self):
+        ###### Left Frame ######
+        left_frame = LabelFrame(self)
+        left_frame.pack(side=LEFT, fill=BOTH, expand=True)
+
+        Label(left_frame,
+              text='Available Fonts',
+              font=('', 20),
+              bg='cornflower blue').pack(side=TOP, fill=BOTH, expand=True)
+
+        self.font_list = Listbox(left_frame,
+                                  width=30,
+                                  height=20)
+        self.font_list.pack(side=TOP, fill=BOTH, expand=True)
+        # Populate Listbox widget
+        for font in self.all_fonts:
+            self.font_list.insert(END, font)
+            self.font_list.bind('<Return>', self.change_font)
+
+        ###### Right Frame ######
+        right_frame = LabelFrame(self)
+        right_frame.pack(side=RIGHT, fill=BOTH, expand=True)
+
+        self.char_display = Label(right_frame,
+                             text='繁體字\n简体字',
+                             font=('', 80),
+                             pady=50,
+                             padx=50)
+        self.char_display.pack(side=TOP, fill=BOTH, expand=True)
+
+        add_sc = Button(right_frame,
+                            text="Add to SC Font List",
+                            command=self.add_sc_font)
+        add_sc.pack(side=TOP, fill=BOTH, expand=True)
+
+        add_tc = Button(right_frame,
+                            text="Add to TC Font List",
+                            command=self.add_tc_font,
+                            pady=20)
+        add_tc.pack(side=TOP, fill=BOTH, expand=True)
+        # Display message when font is added
+        self.add_confirm = Label(right_frame)
+        self.add_confirm.pack(side=TOP, fill=BOTH, expand=True)
+
+    def change_font(self, event):
+        """Change font of char_display widget based on Listbox selection"""
+        font = self.font_list.get(ACTIVE)
+        self.char_display.config(font=(font, 80))
+
+    def add_sc_font(self):
+        """Add selected font to sc_fonts.txt and show confirmation message"""
+        font = self.font_list.get(ACTIVE)
+        with open('sc_fonts.txt', 'a') as f:
+            f.write(font + '\n')
+        self.add_confirm.config(text="Added '%s' to sc_fonts.txt" % font)
+
+    def add_tc_font(self):
+        """Add selected font to tc_fonts.txt and show confirmation message"""
+        font = self.font_list.get(ACTIVE)
+        with open('tc_fonts.txt', 'a') as f:
+            f.write(font + '\n')
+        self.add_confirm.config(text="Added '%s' to tc_fonts.txt" % font)
 
 root = Tk()
-
 root.resizable(0, 0)
 app = Application(master=root)
 app.mainloop()
+
+
+
