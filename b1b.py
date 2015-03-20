@@ -48,12 +48,7 @@ class Application(Frame):
 
         Frame.__init__(self, master)
         self.pack(fill=BOTH, expand=True)
-        self.get_fonts()
-        self.draw_widgets()
-
-        if not self.SCTC_fonts:
-            self.open_font_picker()
-
+        ###### Menu bar ######
         menu = Menu(root)
         root.config(menu=menu)
         file_menu = Menu(menu)
@@ -62,51 +57,52 @@ class Application(Frame):
                               command=self.open_font_picker)
         file_menu.add_command(label="Clear All Lists",
                               command=self.clear_lists)
+
+        self.fs_menu = Menu(menu)
+        menu.add_cascade(label="Font Sets", menu=self.fs_menu)
+
+        self.var = IntVar()
+        db = shelve.open('font_sets')
+        for k in db.keys():
+            self.fs_menu.add_radiobutton(label=k,
+                                         command=lambda k=k : self.ref_set(k))
+        db.close()
+        ###### Default font set ######
+        fs = self.fs_menu.entrycget(0, 'label')
+        with shelve.open('font_sets') as db:
+            self.default_fs = db[fs]
+        ###### Draw widgets ######
+        self.draw_widgets()
+        self.draw_fnt_disp(self.default_fs)
+
     def open_font_picker(self):
         """Open font picker and update b1b display once picker is closed"""
         w = FontPicker()
         w.wait_window(w)
-        self.get_fonts()
-        self.set_fonts()
+        self.refresh_disp()
 
-    def get_fonts(self):
-        """Get fonts from shelve db"""
-        with shelve.open('sc_fonts') as db:
-            self.SC_fonts = list(db.keys())
-        with shelve.open('tc_fonts') as db:
-            self.TC_fonts = list(db.keys())
-        self.SCTC_fonts = self.SC_fonts + self.TC_fonts
+    def ref_set(self, fs_name):
+        self.display_frame.destroy()
+        with shelve.open('font_sets') as db:
+            new_fonts = db[fs_name]
+        self.draw_fnt_disp(new_fonts)
 
     def draw_widgets(self):
         """Draw widgets for main app"""
+
         top_frame = Frame(self)
         top_frame.pack(side=TOP, fill=BOTH, expand=True)
 
         top_right_frame = Frame(top_frame, padx=10)
         top_right_frame.pack(side=RIGHT)
-        self.var = IntVar()
-        r1 = Radiobutton(top_right_frame,
-                         variable=self.var,
-                         value=1,
-                         text='Traditional')
-        r2 = Radiobutton(top_right_frame,
-                         variable=self.var,
-                         value=2,
-                         text='Simplified')
-        r3 = Radiobutton(top_right_frame,
-                         variable=self.var,
-                         value=3,
-                         text='TC & SC')
-        self.var.set(3)
-        r1.pack(side=TOP, fill=BOTH, expand=True)
-        r2.pack(side=TOP, fill=BOTH, expand=True)
-        r3.pack(side=TOP, fill=BOTH, expand=True)
 
         top_left_frame = Frame(top_frame, padx=10)
         self.char_entry = Entry(top_left_frame)
         self.char_entry.insert('0', '比一笔')
         self.char_entry.pack(side=TOP, fill=BOTH, expand=True)
-        show_b = Button(top_left_frame, text='Show', command=self.set_fonts)
+        show_b = Button(top_left_frame,
+                        text='Show',
+                        command=self.refresh_disp)
         quit_b = Button(top_left_frame, text='Quit', command=self.quit)
         top_left_frame.pack(side=LEFT, fill=BOTH, expand=True)
         show_b.pack(side=LEFT, fill=BOTH, expand=True)
@@ -118,14 +114,12 @@ class Application(Frame):
                                relief=SUNKEN)
         self.font_info.pack(side=TOP, fill=BOTH, expand=True)
 
-        self.display_frame = LabelFrame(self)
-        self.display_frame.pack(side=TOP, fill=BOTH, expand=True)
-        # Set initial display layout
-        self.set_fonts()
+    def refresh_disp(self):
+        self.display_frame.destroy()
+        self.draw_fnt_disp(self.default_fs)
 
-    def set_fonts(self):
+    def draw_fnt_disp(self, font_set):
         """Set font display area"""
-        char_set = self.select_charset()
         chars = self.char_entry.get()
 
         if len(chars) > 4:
@@ -135,13 +129,12 @@ class Application(Frame):
             chars = chars[:4]
             self.char_entry.delete(4, END)
         # TODO: come up with better way to refresh display. If there is one...
-        self.display_frame.destroy()
         self.display_frame = LabelFrame(self)
         self.display_frame.pack(side=TOP, fill=BOTH, expand=True)
 
-        height = math.ceil(len(char_set) / 4)
+        height = math.ceil(len(self.default_fs) / 4)
         width = 4
-        fonts = self.font_gen()
+        fonts = self.font_gen(font_set)
         try:
             for r in range(height):
                 for c in range(width):
@@ -153,26 +146,20 @@ class Application(Frame):
                               pady=10)
                         L.bind("<Enter>", self.show_font_info)
                         L.grid(row=r, column=c, sticky=N+E+S+W)
-
         except StopIteration:
             pass
 
-    def select_charset(self):
-        """Select and set correct character set"""
-        mode = self.var.get()
-        char_set = []
-        if mode == 1:
-            char_set = self.TC_fonts
-        elif mode == 2:
-            char_set = self.SC_fonts
-        elif mode == 3:
-            char_set = self.SCTC_fonts
-        return char_set
+    # def select_fs(self):
+    #     """Select and set correct font set"""
+    #     selected_set = self.fs_menu.entrycget(0, 'label')
+    #     with shelve.open('font_sets') as db:
+    #         char_set = db[selected_set]
+    #         # print(char_set)
+    #     return char_set
 
-    def font_gen(self):
+    def font_gen(self, font_set):
         """Generate fonts for labels in display"""
-        char_set = self.select_charset()
-        for font in char_set:
+        for font in font_set:
             yield font.strip()
 
     def show_font_info(self, event):
@@ -190,8 +177,7 @@ class Application(Frame):
             for shelf in shelves:
                 with shelve.open(shelf) as db:
                     db.clear()
-        self.get_fonts()
-        self.set_fonts()
+        self.refresh_disp()
 
 class FontPicker(Toplevel):
 
@@ -199,6 +185,7 @@ class FontPicker(Toplevel):
         Toplevel.__init__(self, master)
         self.all_fonts = tkinter.font.families()
         self.draw_widgets()
+
 
     def draw_widgets(self):
         ###### Left Frame ######
@@ -219,47 +206,82 @@ class FontPicker(Toplevel):
             self.font_list.insert(END, font)
             self.font_list.bind('<Return>', self.change_font)
         ###### Right Frame ######
-        right_frame = LabelFrame(self)
-        right_frame.pack(side=RIGHT, fill=BOTH, expand=True)
+        mid_frame = LabelFrame(self)
+        mid_frame.pack(side=LEFT, fill=BOTH, expand=True)
 
-        self.char_display = Label(right_frame,
+        self.fs_name_entry = Entry(mid_frame)
+        self.fs_name_entry.pack(side=TOP, fill=BOTH, expand=True)
+
+        self.char_display = Label(mid_frame,
                              text='繁體字\n简体字',
                              font=('', 80),
                              pady=50,
                              padx=50)
         self.char_display.pack(side=TOP, fill=BOTH, expand=True)
 
-        add_sc = Button(right_frame,
-                            text="Add to SC Font List",
-                            command=self.add_sc_font)
-        add_sc.pack(side=TOP, fill=BOTH, expand=True)
+        add_fs = Button(mid_frame,
+                            text="Add to Font Set",
+                            command=self.add_fs)
+        add_fs.pack(side=TOP, fill=BOTH, expand=True)
 
-        add_tc = Button(right_frame,
-                            text="Add to TC Font List",
-                            command=self.add_tc_font)
-        add_tc.pack(side=TOP, fill=BOTH, expand=True)
+        remove_fs = Button(mid_frame,
+                           text="Remove from Font Set",
+                           command=self.remove_fs)
+        remove_fs.pack(side=TOP, fill=BOTH, expand=True)
+
+        save_fs = Button(mid_frame,
+                      text="Done",
+                      command=self.save_fs)
+        save_fs.pack(side=TOP, fill=BOTH, expand=True)
         # Display message when font is added
-        self.add_confirm = Label(right_frame)
+        self.add_confirm = Label(mid_frame)
         self.add_confirm.pack(side=TOP, fill=BOTH, expand=True)
+
+        self.right_frame = Frame(self)
+        self.right_frame.pack(side=LEFT, fill=BOTH, expand=True)
+
+        Label(self.right_frame,
+              text='Font Set',
+              font=('', 20),
+              bg='cornflower blue').pack(side=TOP, fill=BOTH, expand=True)
+
+        self.font_set = Listbox(self.right_frame,
+                                  width=30,
+                                  height=20)
+        self.font_set.pack(side=TOP, fill=BOTH, expand=True)
+        # Populate Listbox widget
+        # for font in self.fonts_to_save:
+        #     self.font_set.insert(END, font)
+        #     self.font_set.bind('<Return>', self.change_font)
 
     def change_font(self, event):
         """Change font of char_display widget based on Listbox selection"""
         font = self.font_list.get(ACTIVE)
         self.char_display.config(font=(font, 80))
 
-    def add_sc_font(self):
-        """Add selected font to sc_fonts.txt and show confirmation message"""
+    def add_fs(self):
+        """Add selected font to current font set"""
         font = self.font_list.get(ACTIVE)
-        with shelve.open('sc_fonts') as db:
-            db[font] = font
-        self.add_confirm.config(text="Added '%s' to sc_fonts.txt" % font)
 
-    def add_tc_font(self):
-        """Add selected font to tc_fonts.txt and show confirmation message"""
-        font = self.font_list.get(ACTIVE)
-        with shelve.open('tc_fonts') as db:
-            db[font] = font
-        self.add_confirm.config(text="Added '%s' to tc_fonts.txt" % font)
+        self.font_set.insert(END, font)
+        self.font_set.bind('<Return>', self.change_font)
+
+    def remove_fs(self):
+        """remove selected font from current font set"""
+        # font = self.font_list.get(ACTIVE)
+        self.font_set.delete(ACTIVE)
+
+    def save_fs(self):
+        """
+        Save fonts in Listbox to font_sets.db
+
+        The name of the font set is saved as the key
+        and the fonts are a set under that key.
+        """
+        fonts_to_save = self.font_set.get(0, END)
+        fs_name = self.fs_name_entry.get()
+        with shelve.open('font_sets') as db:
+            db[fs_name] = set(fonts_to_save)
 
 root = Tk()
 root.resizable(0, 0)
