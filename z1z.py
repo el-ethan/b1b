@@ -19,7 +19,9 @@ Japanese kana, etc., to see how they look with different fonts).
 import shelve
 from tkinter import *
 import tkinter.font
-
+# TODO: update documentation
+# TODO: Set default message for title entry
+# TODO: Make sure user enters title
 
 class FontPicker(Toplevel):
 

@@ -34,10 +34,12 @@ default.
 the blue bar below the text entry box.
 """
 # TODO: don't name widgets that don't need it.
+# TODO: Change font picker behavior so it is destroyed on done and main window
+# is refreshed.
+
 import re
 import math
 import shelve
-import os
 from tkinter import *
 import tkinter.font
 from tkinter.messagebox import showwarning, askokcancel
@@ -46,35 +48,35 @@ from z1z import FontPicker
 class Application(Frame):
 
     def __init__(self, master=None):
-
         Frame.__init__(self, master)
         self.pack(fill=BOTH, expand=True)
         ###### Menu bar ######
         menu = Menu(root)
         root.config(menu=menu)
-        file_menu = Menu(menu)
-        menu.add_cascade(label="File", menu=file_menu)
-        file_menu.add_command(label="Open Font Picker",
-                              command=self.open_font_picker)
-        file_menu.add_command(label="Clear All Lists",
-                              command=self.clear_lists)
-
+        filemenu = Menu(menu)
+        menu.add_cascade(label="File", menu=filemenu)
+        filemenu.add_command(label="Open Font Picker",
+                             command=self.open_font_picker)
+        filemenu.add_command(label="Clear All Lists",
+                             command=self.clear_lists)
         fs_menu = Menu(menu)
         menu.add_cascade(label="Font Sets", menu=fs_menu)
-
-
+        # Add radio button to menu for each key in font sets database
         db = shelve.open('font_sets')
         for k in db.keys():
             fs_menu.add_radiobutton(label=k,
-                                         command=lambda k=k : self.ref_set(k))
+                                    command=lambda k=k : self.refresh_fs(k))
         db.close()
-        ###### Default font set ######
-        fs = fs_menu.entrycget(0, 'label')
+        # Set default font set
+        default_fs = fs_menu.entrycget(0, 'label')
         with shelve.open('font_sets') as db:
-            self.current_fs = db[fs]
-        ###### Draw widgets ######
+            self.current_fs = db[default_fs]
+
         self.draw_widgets()
-        self.draw_fnt_disp(self.current_fs)
+        self.draw_char_disp(self.current_fs)
+        # Open font picker if no font sets available
+        if not self.current_fs:
+            self.open_font_picker()
 
     def open_font_picker(self):
         """Open font picker and update b1b display once picker is closed"""
@@ -82,34 +84,34 @@ class Application(Frame):
         w.wait_window(w)
         self.refresh_disp()
 
-    def ref_set(self, fs_name):
+    def refresh_fs(self, fs_name):
+        """Update current font set and redraw character display"""
         self.display_frame.destroy()
         with shelve.open('font_sets') as db:
             new_fonts = db[fs_name]
+        # Update current font set
         self.current_fs = new_fonts
-        self.draw_fnt_disp(new_fonts)
+        self.draw_char_disp(new_fonts)
 
 
     def draw_widgets(self):
-        """Draw widgets for main app"""
-
+        """Draw operation widgets (buttons, entry) in app top section"""
+        # TODO: get rid of top_frame or top_left_frame
         top_frame = Frame(self)
         top_frame.pack(side=TOP, fill=BOTH, expand=True)
 
-        top_right_frame = Frame(top_frame, padx=10)
-        top_right_frame.pack(side=RIGHT)
-
         top_left_frame = Frame(top_frame, padx=10)
+        top_left_frame.pack(side=LEFT, fill=BOTH, expand=True)
+
         self.char_entry = Entry(top_left_frame)
         self.char_entry.insert('0', '比一笔')
         self.char_entry.pack(side=TOP, fill=BOTH, expand=True)
-        show_b = Button(top_left_frame,
-                        text='Show',
-                        command=self.refresh_disp)
-        quit_b = Button(top_left_frame, text='Quit', command=self.quit)
-        top_left_frame.pack(side=LEFT, fill=BOTH, expand=True)
-        show_b.pack(side=LEFT, fill=BOTH, expand=True)
-        quit_b.pack(side=LEFT, fill=BOTH, expand=True)
+
+        # TODO: Get rid buttons, figure out better way to refresh display
+        show = Button(top_left_frame, text='Show',command=self.refresh_disp)
+        quit = Button(top_left_frame, text='Quit', command=self.quit)
+        show.pack(side=LEFT, fill=BOTH, expand=True)
+        quit.pack(side=LEFT, fill=BOTH, expand=True)
 
         self.font_info = Label(self,
                                text='font info',
@@ -119,32 +121,34 @@ class Application(Frame):
 
     def refresh_disp(self):
         self.display_frame.destroy()
-        self.draw_fnt_disp(self.current_fs)
+        self.draw_char_disp(self.current_fs)
 
-    def draw_fnt_disp(self, font_set):
+    def draw_char_disp(self, font_set):
         """Set font display area"""
         chars = self.char_entry.get()
-
+        # TODO: find with better way to control window size
         if len(chars) > 4:
             showwarning("Too many characters!",
                         "Input too long, trimmed to 4 characters",
                         default='ok')
             chars = chars[:4]
             self.char_entry.delete(4, END)
-        # TODO: come up with better way to refresh display. If there is one...
+
         self.display_frame = LabelFrame(self)
         self.display_frame.pack(side=TOP, fill=BOTH, expand=True)
 
-        height = math.ceil(len(font_set) / 4)
+
         width = 4
-        fonts = self.font_gen(font_set)
+        height = math.ceil(len(font_set) / width)
+        fonts = self.gen_font(font_set)
+        fontsize = 60
         try:
             for r in range(height):
                 for c in range(width):
 
                         L = Label(self.display_frame,
                               text=chars, relief=RIDGE,
-                              font=(next(fonts), 55),
+                              font=(next(fonts), fontsize),
                               padx=30,
                               pady=10)
                         L.bind("<Enter>", self.show_font_info)
@@ -152,23 +156,16 @@ class Application(Frame):
         except StopIteration:
             pass
 
-    # def select_fs(self):
-    #     """Select and set correct font set"""
-    #     selected_set = fs_menu.entrycget(0, 'label')
-    #     with shelve.open('font_sets') as db:
-    #         char_set = db[selected_set]
-    #         # print(char_set)
-    #     return char_set
-
-    def font_gen(self, font_set):
+    def gen_font(self, font_set):
         """Generate fonts for labels in display"""
         for font in font_set:
-            yield font.strip()
+            yield font
 
     def show_font_info(self, event):
-        """Generate text for font info display"""
+        """Configure font info display"""
         name = event.widget.cget('font')
-        name = re.sub('[{}(55)]', '', name)
+        # Remove braces and size from font info
+        name = re.sub('[{}\d]', '', name)
         self.font_info.config(text=name)
 
     def clear_lists(self):
