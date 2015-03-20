@@ -70,10 +70,10 @@ class Application(Frame):
         ###### Default font set ######
         fs = fs_menu.entrycget(0, 'label')
         with shelve.open('font_sets') as db:
-            self.default_fs = db[fs]
+            self.current_fs = db[fs]
         ###### Draw widgets ######
         self.draw_widgets()
-        self.draw_fnt_disp(self.default_fs)
+        self.draw_fnt_disp(self.current_fs)
 
     def open_font_picker(self):
         """Open font picker and update b1b display once picker is closed"""
@@ -85,7 +85,9 @@ class Application(Frame):
         self.display_frame.destroy()
         with shelve.open('font_sets') as db:
             new_fonts = db[fs_name]
+        self.current_fs = new_fonts
         self.draw_fnt_disp(new_fonts)
+
 
     def draw_widgets(self):
         """Draw widgets for main app"""
@@ -102,7 +104,7 @@ class Application(Frame):
         self.char_entry.pack(side=TOP, fill=BOTH, expand=True)
         show_b = Button(top_left_frame,
                         text='Show',
-                        command=self.ref_set)
+                        command=self.refresh_disp)
         quit_b = Button(top_left_frame, text='Quit', command=self.quit)
         top_left_frame.pack(side=LEFT, fill=BOTH, expand=True)
         show_b.pack(side=LEFT, fill=BOTH, expand=True)
@@ -116,7 +118,7 @@ class Application(Frame):
 
     def refresh_disp(self):
         self.display_frame.destroy()
-        self.draw_fnt_disp(self.default_fs)
+        self.draw_fnt_disp(self.current_fs)
 
     def draw_fnt_disp(self, font_set):
         """Set font display area"""
