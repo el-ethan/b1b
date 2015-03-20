@@ -58,17 +58,17 @@ class Application(Frame):
         file_menu.add_command(label="Clear All Lists",
                               command=self.clear_lists)
 
-        self.fs_menu = Menu(menu)
-        menu.add_cascade(label="Font Sets", menu=self.fs_menu)
+        fs_menu = Menu(menu)
+        menu.add_cascade(label="Font Sets", menu=fs_menu)
 
-        self.var = IntVar()
+
         db = shelve.open('font_sets')
         for k in db.keys():
-            self.fs_menu.add_radiobutton(label=k,
+            fs_menu.add_radiobutton(label=k,
                                          command=lambda k=k : self.ref_set(k))
         db.close()
         ###### Default font set ######
-        fs = self.fs_menu.entrycget(0, 'label')
+        fs = fs_menu.entrycget(0, 'label')
         with shelve.open('font_sets') as db:
             self.default_fs = db[fs]
         ###### Draw widgets ######
@@ -102,7 +102,7 @@ class Application(Frame):
         self.char_entry.pack(side=TOP, fill=BOTH, expand=True)
         show_b = Button(top_left_frame,
                         text='Show',
-                        command=self.refresh_disp)
+                        command=self.ref_set)
         quit_b = Button(top_left_frame, text='Quit', command=self.quit)
         top_left_frame.pack(side=LEFT, fill=BOTH, expand=True)
         show_b.pack(side=LEFT, fill=BOTH, expand=True)
@@ -132,7 +132,7 @@ class Application(Frame):
         self.display_frame = LabelFrame(self)
         self.display_frame.pack(side=TOP, fill=BOTH, expand=True)
 
-        height = math.ceil(len(self.default_fs) / 4)
+        height = math.ceil(len(font_set) / 4)
         width = 4
         fonts = self.font_gen(font_set)
         try:
@@ -151,7 +151,7 @@ class Application(Frame):
 
     # def select_fs(self):
     #     """Select and set correct font set"""
-    #     selected_set = self.fs_menu.entrycget(0, 'label')
+    #     selected_set = fs_menu.entrycget(0, 'label')
     #     with shelve.open('font_sets') as db:
     #         char_set = db[selected_set]
     #         # print(char_set)
