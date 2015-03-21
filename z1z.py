@@ -18,6 +18,7 @@ Japanese kana, etc., to see how they look with different fonts).
 """
 import shelve
 from tkinter import *
+from tkinter.messagebox import showwarning
 import tkinter.font
 # TODO: update documentation
 # TODO: Set default message for title entry
@@ -55,6 +56,8 @@ class FontPicker(Toplevel):
 
         self.fs_name_entry = Entry(mid_frame)
         self.fs_name_entry.pack(side=TOP, fill=BOTH, expand=True)
+        self.name_entry_prompt = "NAME OF FONT SET HERE"
+        self.fs_name_entry.insert('0', self.name_entry_prompt)
 
         self.char_display = Label(mid_frame,
                              text='繁體字\n简体字',
@@ -124,5 +127,10 @@ class FontPicker(Toplevel):
         """
         fonts_to_save = self.font_set.get(0, END)
         fs_name = self.fs_name_entry.get()
-        with shelve.open('font_sets') as db:
-            db[fs_name] = set(fonts_to_save)
+        if fs_name == self.name_entry_prompt:
+            showwarning("Name of Font Set Not Specified",
+                        "Please enter a name for this font set",
+                        default='ok')
+        else:
+            with shelve.open('font_sets') as db:
+                db[fs_name] = set(fonts_to_save)
