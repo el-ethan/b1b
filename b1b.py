@@ -50,7 +50,11 @@ class Application(Frame):
     def __init__(self, master=None):
         Frame.__init__(self, master)
         self.pack(fill=BOTH, expand=True)
-        ###### Menu bar ######
+        self.draw_menu_bar()
+        self.draw_widgets()
+        self.draw_char_disp(self.current_fs)
+
+    def draw_menu_bar(self):
         menu = Menu(root)
         root.config(menu=menu)
         filemenu = Menu(menu)
@@ -69,20 +73,25 @@ class Application(Frame):
         db.close()
         # Set default font set
         default_fs = fs_menu.entrycget(0, 'label')
-        with shelve.open('font_sets') as db:
-            self.current_fs = db[default_fs]
-
-        self.draw_widgets()
-        self.draw_char_disp(self.current_fs)
-        # Open font picker if no font sets available
-        if not self.current_fs:
+        if not default_fs:
             self.open_font_picker()
+
+        with shelve.open('font_sets') as db:
+            keys = [key for key in db.keys()]
+            default_fs = keys[0]
+            self.current_fs = db[default_fs]
 
     def open_font_picker(self):
         """Open font picker and update b1b display once picker is closed"""
+        # TODO: refresh font set menu after this runs
         w = FontPicker()
         w.wait_window(w)
-        self.refresh_disp()
+        self.draw_menu_bar()
+        # TODO: This is a hack, fix it without exception handling
+        try:
+            self.refresh_disp()
+        except AttributeError:
+            pass
 
     def refresh_fs(self, fs_name):
         """Update current font set and redraw character display"""
