@@ -1,42 +1,40 @@
-# b1b
+# b1b (比一笔）is a GUI application for comparing Chinese fonts.
 
-b1b (比一笔) is a tool for comparing how Chinese characters are represented using different fonts. While certain aspects of characters may change minimally based on font family, sometimes certain components are represented very differently. (A good test of this is to compare the character 寺, sì, using the app, paying attention to how the top portion changes).
+## Usage:
 
-This is very much a work in progress, and my first major project using Python and the tkinter module. Constructive feedback is more than welcome!
+### Font Sets
 
-## A few notes on operation:
+When you run the b1b.py script for the first time, the font picker app
+will run, prompting you to define your first font set. This set will be
+used as the default font set. Font sets are lists of font names that will
+be used to display whatever characters you enter into the b1b app.
 
-* For this app to work properly SC_fonts and TC_fonts lists will need
-to be populated. You can modify the code to add the fonts manually or
-you can first run the z1z font finder utility to add the fonts you want
-to this app.
+    * You can save multiple sets, and access them from the Font Sets menu.
+    * The font picker can be accessed at any time from the File menu.
+    * You can delete all your font sets using the 'Clear All Font Sets'
+    option from the File menu.
 
-* The app does not currently support MAC OS X Chinese input methods,
-so you must input text by pasting it if you are using OS X. This is a
-known issue with tkinter.
+### b1b
 
-* Once you have pasted new text into the entry box, click 'Show'
-to refresh the display.
+When you run the main app you will see the characters '比一笔' (the Chinese
+name of the app) displayed using all of the fonts in the default font list
+(the first list you defined from the font picker).
 
-* Although you can enter an arbitrarily long string of characters into the
-entry box, the display will grow too large to be useful with too many
-characters, so it is best to limit your entry to A MAX OF 4 CHARACTERS at
-a time.
+Once you enter new characters in the text entry region and press 'Show', the
+display will update to show the new characters.
 
-* You can mix Simplified and Traditional characters in your input if you wish.
-However, keep in mind that some characters may not display properly in fonts
-meant specifically for SC or TC, and will default to some other font, probably
-heiti.
-
-* Use the buttons on the top right to customize the display for a particular
-type of characters. Traditional and Simplified will display together by
-default.
-
-* Hover the mouse arrow over characters to display their font information in
-the gray bar below the text entry box.
-
-# z1z 
-
-z1z (找一找) is a tool to find fonts on your system to use with b1b. Fonts selected in this app can be automatically sent to files that can be used to populate font lists in b1b.
-
-
+    * Currently, you can only display a max of 4 characters. All characters
+    after 4 will be truncated, and the first 4 will be displayed. This is to
+    preserve the readability of the display, but I intend to change this so
+    that arbitrarily long strings can be displayed.
+    * Because of a known issue with tkinter, the app does not work with the
+    default Chinese input method on OSX, therefore characters must be pasted
+    into the app if you are on a Mac. You should be able to type characters
+    directly into the app on Windows (tested on Win 7) and Ubuntu (tested on
+    Ubuntu 14.04).
+    * You can mix Simplified and Traditional characters in your input if you
+    wish. However, keep in mind that some characters may not display
+    properly in fonts meant specifically for SC or TC, and will default
+    to some other font, probably heiti.
+    * Hover the mouse arrow over characters to display their font information
+    in the blue bar below the text entry box.
