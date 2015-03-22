@@ -34,9 +34,9 @@ default.
 the blue bar below the text entry box.
 """
 # TODO: don't name widgets that don't need it.
-# TODO: Change font picker behavior so it is destroyed on done and main window
-# is refreshed.
-
+# TODO: Add main(), list comprehensions
+# TODO: Add command to delete only current font set
+# TODO: Update docstring
 import re
 import math
 import shelve
@@ -55,24 +55,25 @@ class Application(Frame):
         self.draw_char_disp(self.current_fs)
 
     def draw_menu_bar(self):
+        """Add file menu and font set menu"""
         menu = Menu(root)
         root.config(menu=menu)
         filemenu = Menu(menu)
         menu.add_cascade(label="File", menu=filemenu)
         filemenu.add_command(label="Open Font Picker",
                              command=self.open_font_picker)
-        filemenu.add_command(label="Clear All Lists",
+        filemenu.add_command(label="Clear All Font Sets",
                              command=self.clear_lists)
-        fs_menu = Menu(menu)
-        menu.add_cascade(label="Font Sets", menu=fs_menu)
+        self.fs_menu = Menu(menu)
+        menu.add_cascade(label="Font Sets", menu=self.fs_menu)
         # Add radio button to menu for each key in font sets database
         db = shelve.open('font_sets')
         for k in db.keys():
-            fs_menu.add_radiobutton(label=k,
+            self.fs_menu.add_radiobutton(label=k,
                                     command=lambda k=k : self.refresh_fs(k))
         db.close()
         # Set default font set
-        default_fs = fs_menu.entrycget(0, 'label')
+        default_fs = self.fs_menu.entrycget(0, 'label')
         if not default_fs:
             self.open_font_picker()
 
@@ -83,11 +84,10 @@ class Application(Frame):
 
     def open_font_picker(self):
         """Open font picker and update b1b display once picker is closed"""
-        # TODO: refresh font set menu after this runs
         w = FontPicker()
         w.wait_window(w)
         self.draw_menu_bar()
-        # TODO: This is a hack, fix it without exception handling
+        # TODO: fix it without exception handling
         try:
             self.refresh_disp()
         except AttributeError:
@@ -98,6 +98,8 @@ class Application(Frame):
         self.display_frame.destroy()
         with shelve.open('font_sets') as db:
             new_fonts = db[fs_name]
+        root.title(fs_name)
+        self.current_fs_name = fs_name
         # Update current font set
         self.current_fs = new_fonts
         self.draw_char_disp(new_fonts)
@@ -116,7 +118,7 @@ class Application(Frame):
         self.char_entry.insert('0', '比一笔')
         self.char_entry.pack(side=TOP, fill=BOTH, expand=True)
 
-        # TODO: Get rid buttons, figure out better way to refresh display
+        # TODO: Get rid of buttons, figure out better way to refresh display
         show = Button(top_left_frame, text='Show',command=self.refresh_disp)
         quit = Button(top_left_frame, text='Quit', command=self.quit)
         show.pack(side=LEFT, fill=BOTH, expand=True)
@@ -131,11 +133,12 @@ class Application(Frame):
     def refresh_disp(self):
         self.display_frame.destroy()
         self.draw_char_disp(self.current_fs)
+        print(self.current_fs)
 
     def draw_char_disp(self, font_set):
         """Set font display area"""
         chars = self.char_entry.get()
-        # TODO: find with better way to control window size
+        # TODO: find better way to control window size
         if len(chars) > 4:
             showwarning("Too many characters!",
                         "Input too long, trimmed to 4 characters",
@@ -182,11 +185,10 @@ class Application(Frame):
                         "Are you sure you want to clear all lists?"
                         "\nThis action cannot be undone.",
                         default='cancel')):
-            shelves = ['tc_fonts', 'sc_fonts']
-            for shelf in shelves:
-                with shelve.open(shelf) as db:
-                    db.clear()
-        self.refresh_disp()
+            with shelve.open('font_sets') as db:
+                db.clear()
+            self.refresh_disp()
+            self.fs_menu.delete(0, END)
 
 root = Tk()
 root.resizable(0, 0)
