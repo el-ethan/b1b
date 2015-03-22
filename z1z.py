@@ -1,28 +1,24 @@
 #!/usr/bin/env python3
 """
-z1z （找一找) is a utility for displaying the fonts installed on your system
+This module includes a Toplevel widget that allows you to pick and save fonts
 
 When a font in the listbox is selected, pressing return will change the
-character display to that the characters are displayed with the selected
-font. The purpose of this tool is to find the identify the Chinese fonts
-installed on your system so they can be used in the b1b app. Too add a
-font to your font list, click one of the Add buttons. A message will
-indicate that the font has been added to the list.
+character display so that the characters are displayed with the selected
+font. The purpose of this tool is to identify the Chinese fonts installed
+on your system so they can be used in the b1b app. The user will be prompted
+to set their first font set if the start b1b with no previously saved sets.
+After that, the font picker can be accessed at anytime from the b1b File
+menu.
 
-Fonts are added to text files sc_fonts.txt and tc_fonts.txt. Text files are
-used so that they can be easily viewed and modified manually if necessary.
-
-The value of the char_display widget's text option can be changed if you want
-to test fonts for different languages (i.e., you can add Latin characters,
-Japanese kana, etc., to see how they look with different fonts).
+Font sets are saved using the Python shelve module in a database where they
+are stored as key-value pairs with the key being the name of the font set,
+and the value being a set (in the Python sense) of the fonts in that font set.
 """
 import shelve
 from tkinter import *
 from tkinter.messagebox import showwarning
 import tkinter.font
 # TODO: update documentation
-# TODO: Set default message for title entry
-# TODO: Make sure user enters title
 
 class FontPicker(Toplevel):
 
@@ -111,13 +107,11 @@ class FontPicker(Toplevel):
     def add_fs(self):
         """Add selected font to current font set"""
         font = self.font_list.get(ACTIVE)
-
         self.font_set.insert(END, font)
         self.font_set.bind('<Return>', self.change_font)
 
     def remove_fs(self):
         """remove selected font from current font set"""
-        # font = self.font_list.get(ACTIVE)
         self.font_set.delete(ACTIVE)
 
     def save_fs(self):
