@@ -54,10 +54,11 @@ class FontPicker(Toplevel):
         mid_frame = LabelFrame(self)
         mid_frame.pack(side=LEFT, fill=BOTH, expand=True)
 
-        self.fs_name_entry = Entry(mid_frame)
+        self.fs_name_entry = Entry(mid_frame, fg='gray')
         self.fs_name_entry.pack(side=TOP, fill=BOTH, expand=True)
-        self.name_entry_prompt = "NAME OF FONT SET HERE"
+        self.name_entry_prompt = "Enter a name for this font set here:"
         self.fs_name_entry.insert('0', self.name_entry_prompt)
+        self.fs_name_entry.bind('<Button-1>', self.clear_entry)
 
         self.char_display = Label(mid_frame,
                              text='繁體字\n简体字',
@@ -96,15 +97,16 @@ class FontPicker(Toplevel):
                                   width=30,
                                   height=20)
         self.font_set.pack(side=TOP, fill=BOTH, expand=True)
-        # Populate Listbox widget
-        # for font in self.fonts_to_save:
-        #     self.font_set.insert(END, font)
-        #     self.font_set.bind('<Return>', self.change_font)
 
     def change_font(self, event):
         """Change font of char_display widget based on Listbox selection"""
         font = self.font_list.get(ACTIVE)
         self.char_display.config(font=(font, 80))
+
+    def clear_entry(self, event):
+        """Clear fs_name_entry when clicked, and change font color"""
+        self.fs_name_entry.delete(0, END)
+        self.fs_name_entry.config(fg='black')
 
     def add_fs(self):
         """Add selected font to current font set"""
@@ -127,10 +129,12 @@ class FontPicker(Toplevel):
         """
         fonts_to_save = self.font_set.get(0, END)
         fs_name = self.fs_name_entry.get()
-        if fs_name == self.name_entry_prompt:
+        # Show warning if default name hasn't changed or no name is defined
+        if fs_name == self.name_entry_prompt or not fs_name:
             showwarning("Name of Font Set Not Specified",
                         "Please enter a name for this font set",
                         default='ok')
         else:
             with shelve.open('font_sets') as db:
                 db[fs_name] = set(fonts_to_save)
+                self.destroy()
