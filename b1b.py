@@ -52,6 +52,8 @@ from tkinter import *
 import tkinter.font
 from tkinter.messagebox import showwarning, askokcancel
 
+osx_fonts = ['Heiti SC', 'Kaiti SC', 'Songti SC']
+win7_fonts = ['SimHei', 'KaiTi', 'SimSun']
 
 class Application(Frame):
 
@@ -69,28 +71,36 @@ class Application(Frame):
         filemenu = Menu(menu)
         menu.add_cascade(label="File", menu=filemenu)
         filemenu.add_command(label="Open Font Picker",
-                             command=self.open_font_picker)
+                             command=self.open_picker)
         filemenu.add_command(label="Clear All Font Sets",
-                             command=self.clear_lists)
+                             command=self.clear_sets)
         self.fs_menu = Menu(menu)
         menu.add_cascade(label="Font Sets", menu=self.fs_menu)
+        # Add sample font sets
+        f = osx_fonts
+        self.fs_menu.add_radiobutton(label="Sample Font Set (OS X)",
+                                command=lambda f=f : self.set_sample_fs(f))
+        f = win7_fonts
+        self.fs_menu.add_radiobutton(label="Sample Font Set (Windows)",
+                                 command=lambda f=f : self.set_sample_fs(f))
+
         # Add radio button to menu for each key in font sets database
         db = shelve.open('font_sets')
-        for k in db.keys():
-            self.fs_menu.add_radiobutton(label=k,
-                                    command=lambda k=k : self.refresh_fs(k))
-        db.close()
-        # Set default font set
-        default_fs = self.fs_menu.entrycget(0, 'label')
-        if not default_fs:
-            self.open_font_picker()
+        if not db:
+            # TODO: Put a message box here
+            self.current_fs = osx_fonts
+        else:
+            for k in db.keys():
+                self.fs_menu.add_radiobutton(label=k,
+                                        command=lambda k=k : self.refresh_fs(k))
+            db.close()
+            # Set default font set
+            with shelve.open('font_sets') as db:
+                keys = [key for key in db.keys()]
+                default_fs = keys[0]
+                self.current_fs = db[default_fs]
 
-        with shelve.open('font_sets') as db:
-            keys = [key for key in db.keys()]
-            default_fs = keys[0]
-            self.current_fs = db[default_fs]
-
-    def open_font_picker(self):
+    def open_picker(self):
         """Open font picker and update b1b display once picker is closed"""
         w = FontPicker()
         w.wait_window(w)
@@ -100,6 +110,12 @@ class Application(Frame):
             self.refresh_disp()
         except AttributeError:
             pass
+
+    def set_sample_fs(self, fs):
+        self.display_frame.destroy()
+        # Update current font set
+        self.current_fs = fs
+        self.draw_char_disp(fs)
 
     def refresh_fs(self, fs_name):
         """Update current font set and redraw character display"""
@@ -187,7 +203,7 @@ class Application(Frame):
         name = re.sub('[{}\d]', '', name)
         self.font_info.config(text=name)
 
-    def clear_lists(self):
+    def clear_sets(self):
         if (askokcancel("WARNING!",
                         "Are you sure you want to clear all lists?"
                         "\nThis action cannot be undone.",
@@ -250,7 +266,7 @@ class FontPicker(Toplevel):
         remove_fs.pack(side=TOP, fill=BOTH, expand=True)
 
         save_fs = Button(mid_frame,
-                      text="Done",
+                      text="Save and Quit Picker",
                       command=self.save_fs)
         save_fs.pack(side=TOP, fill=BOTH, expand=True)
         # Display message when font is added
@@ -285,6 +301,10 @@ class FontPicker(Toplevel):
         font = self.font_list.get(ACTIVE)
         self.font_set.insert(END, font)
         self.font_set.bind('<Return>', self.change_font)
+
+    def quit_picker(self):
+        first_time = False
+        self.distroy()
 
     def remove_fs(self):
         """remove selected font from current font set"""
