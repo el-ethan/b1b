@@ -51,7 +51,7 @@ import shelve
 import sys
 from tkinter import *
 import tkinter.font
-from tkinter.messagebox import showwarning, askokcancel
+from tkinter.messagebox import showwarning, askokcancel, askyesno
 
 # Sample font sets which can be used if no user sets defined
 osx_fonts = ['Heiti SC', 'Kaiti SC', 'Songti SC']
@@ -88,12 +88,23 @@ class Application(Frame):
 
         # Add radio button to menu for each key in font sets database
         db = shelve.open('font_sets')
+        msg = ("\n欢迎你! You have not defined your own font sets yet. "
+               "To define a custom font set, \nselect Open Font Picker "
+               "from the File Menu, pick some fonts, then name and "
+               "save \nyour list! The first list you define will be the "
+               "default list when you run b1b. Enjoy!\n")
+        self.welcome_lbl = Label(self,
+                            text=msg,
+                            justify=LEFT,
+                            padx=30,
+                            font=('Avenir', 20))
         if not db and sys.platform == 'darwin':
-            # TODO: Put a message box here
             self.current_fs = osx_fonts
+            self.welcome_lbl.pack(side=BOTTOM)
         elif not db:
             # Default to Windows fonts if not on Mac
             self.current_fs = win7_fonts
+            self.welcome_lbl.pack(side=BOTTOM)
         else:
             for k in db.keys():
                 fs_menu.add_radiobutton(label=k,
@@ -107,6 +118,7 @@ class Application(Frame):
 
     def open_picker(self):
         """Open font picker and update b1b display once picker is closed"""
+        self.welcome_lbl.destroy()
         w = FontPicker()
         w.wait_window(w)
         self.draw_menu_bar()
@@ -273,7 +285,7 @@ class FontPicker(Toplevel):
         remove_fs.pack(side=TOP, fill=BOTH, expand=True)
 
         save_fs = Button(mid_frame,
-                      text="Save and Quit Picker",
+                      text="Save Font Set",
                       command=self.save_fs)
         save_fs.pack(side=TOP, fill=BOTH, expand=True)
         # Display message when font is added
@@ -327,10 +339,15 @@ class FontPicker(Toplevel):
         fonts_to_save = self.font_set.get(0, END)
         fs_name = self.fs_name_entry.get()
         # Show warning if default name hasn't changed or no name is defined
-        if fs_name == self.name_entry_prompt or not fs_name:
+        if not fonts_to_save:
+            showwarning("No Fonts Specified",
+                        "Please add fonts to your set before saving",
+                        default='ok')
+        elif fs_name == self.name_entry_prompt or not fs_name:
             showwarning("Name of Font Set Not Specified",
                         "Please enter a name for this font set",
                         default='ok')
+
         else:
             with shelve.open('font_sets') as db:
                 db[fs_name] = set(fonts_to_save)
