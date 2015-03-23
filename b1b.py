@@ -97,14 +97,14 @@ class Application(Frame):
                             text=msg,
                             justify=LEFT,
                             padx=30,
-                            font=('Avenir', 20))
+                            font=('Avenir', 18))
         if not db and sys.platform == 'darwin':
             self.current_fs = osx_fonts
-            self.welcome_lbl.pack(side=BOTTOM)
+            self.welcome_lbl.pack(side=BOTTOM, fill=BOTH, expand=True)
         elif not db:
             # Default to Windows fonts if not on Mac
             self.current_fs = win7_fonts
-            self.welcome_lbl.pack(side=BOTTOM)
+            self.welcome_lbl.pack(side=BOTTOM, fill=BOTH, expand=True)
         else:
             for k in db.keys():
                 fs_menu.add_radiobutton(label=k,
