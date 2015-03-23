@@ -46,10 +46,7 @@ to some other font, probably heiti.
 * Hover the mouse arrow over characters to display their font information
 in the blue bar below the text entry box.
 """
-# TODO: don't name widgets that don't need it.
 # TODO: Add command to delete only current font set
-# TODO: Move everything to one module
-# TODO: Make sure that saved font set is not empty
 import re
 import math
 import shelve
@@ -245,7 +242,6 @@ class FontPicker(Toplevel):
 
 
     def draw_widgets(self):
-        ###### Left Frame ######
         left_frame = LabelFrame(self)
         left_frame.pack(side=LEFT, fill=BOTH, expand=True)
 
@@ -262,7 +258,7 @@ class FontPicker(Toplevel):
         for font in self.all_fonts:
             self.font_list.insert(END, font)
             self.font_list.bind('<Return>', self.change_font)
-        ###### Right Frame ######
+
         mid_frame = LabelFrame(self)
         mid_frame.pack(side=LEFT, fill=BOTH, expand=True)
 
