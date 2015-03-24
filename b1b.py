@@ -40,7 +40,7 @@ class Application(Frame):
         filemenu.add_command(label="Open Font Picker",
                              command=self.open_picker)
         filemenu.add_command(label="Delete All User Font Sets",
-                             command=self.clear_sets)
+                             command=self.delete_sets)
         fs_menu = Menu(menu)
         menu.add_cascade(label="Font Sets", menu=fs_menu)
         # Add sample font sets
@@ -108,10 +108,18 @@ class Application(Frame):
         self.char_entry.pack(side=TOP, fill=BOTH, expand=True)
 
         # TODO: Get rid of buttons, figure out better way to refresh display
-        show = Button(top_left_frame, text='Show',command=self.refresh_disp)
-        quit = Button(top_left_frame, text='Quit', command=self.quit)
+        show = Button(top_left_frame,
+                      text='Show',
+                      command=self.refresh_disp)
+        open_fp = Button(top_left_frame,
+                         text='Open Font Picker',
+                         command=self.open_picker)
+        delete_fs = Button(top_left_frame,
+                         text='Delete User Font Sets',
+                         command=self.delete_sets)
         show.pack(side=LEFT, fill=BOTH, expand=True)
-        quit.pack(side=LEFT, fill=BOTH, expand=True)
+        open_fp.pack(side=LEFT, fill=BOTH, expand=True)
+        delete_fs.pack(side=LEFT, fill=BOTH, expand=True)
         self.default_msg = ("Hover mouse arrow over characters to "
                             "display font info")
         self.font_info = Label(self,
@@ -196,7 +204,7 @@ class Application(Frame):
         name = re.sub('[{}\d]', '', name)
         self.font_info.config(text=name)
 
-    def clear_sets(self):
+    def delete_sets(self):
         """Clear all user defined font sets"""
         db = shelve.open('font_sets')
         if not db:
