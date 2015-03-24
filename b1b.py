@@ -112,11 +112,13 @@ class Application(Frame):
         quit = Button(top_left_frame, text='Quit', command=self.quit)
         show.pack(side=LEFT, fill=BOTH, expand=True)
         quit.pack(side=LEFT, fill=BOTH, expand=True)
-        default_msg = "Hover mouse arrow over characters to display font info"
+        self.default_msg = ("Hover mouse arrow over characters to "
+                            "display font info")
         self.font_info = Label(self,
-                               text=default_msg,
+                               text=self.default_msg,
                                bg='cornflower blue',
-                               relief=SUNKEN)
+                               relief=SUNKEN,
+                               padx=30)
         self.font_info.pack(side=TOP, fill=BOTH, expand=True)
 
     def draw_char_disp(self, font_set):
@@ -133,7 +135,6 @@ class Application(Frame):
         self.display_frame = LabelFrame(self)
         self.display_frame.pack(side=TOP, fill=BOTH, expand=True)
 
-
         width = 4
         height = math.ceil(len(font_set) / width)
         fonts = self.gen_font(font_set)
@@ -141,13 +142,12 @@ class Application(Frame):
         try:
             for r in range(height):
                 for c in range(width):
-
                         L = Label(self.display_frame,
-                              text=chars, relief=RIDGE,
+                              text=chars,
                               font=(next(fonts), fontsize),
                               padx=30,
                               pady=10)
-                        L.bind("<Enter>", self.show_font_info)
+                        L.bind('<Enter>', self.show_font_info)
                         L.grid(row=r, column=c, sticky=N+E+S+W)
         except StopIteration:
             pass
