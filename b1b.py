@@ -5,8 +5,7 @@ Python 3 and tkinter
 """
 # TODO: Add command to delete only current font set
 # TODO: Get rid of tearoff menus
-# TODO: Fix display resize issue when fewer than 3 chars are shown with
-# welcome message
+
 # TODO: Allow multiple selections in font picker
 # TODO: Add warning that fonts in default set might not
 # be what they appear
@@ -54,31 +53,18 @@ class Application(Frame):
                                 variable=self.fs_var,
                                 value="Sample Font Set (Windows)",
                                 command=self.refresh_fs)
-
-        # Welcome message to display if not user defined font sets present
-        msg = ("\n欢迎你! You have not defined your own font sets yet. "
-               "To define a custom font set, \nselect Open Font Picker "
-               "from the File Menu, pick some fonts, then name and "
-               "save \nyour list! The first list you define will be the "
-               "default list when you run b1b. Enjoy!\n")
         # Add radio button to menu for each key in font sets database
         db = shelve.open('font_sets')
-        self.welcome_lbl = Label(self,
-                            text=msg,
-                            justify=LEFT,
-                            padx=30,
-                            font=('Avenir', 18))
         if not db and sys.platform == 'darwin':
             self.fs_var.set("Sample Font Set (OS X)")
             self.current_fs = osx_fonts
-            self.welcome_lbl.pack(side=BOTTOM, fill=BOTH, expand=True)
+
         elif not db:
             # Default to Windows fonts if not on Mac
             # The Win fonts seem to work on Ubuntu as well, but don't all show
             # up in font picker...
             self.fs_var.set("Sample Font Set (Windows)")
             self.current_fs = win7_fonts
-            self.welcome_lbl.pack(side=BOTTOM, fill=BOTH, expand=True)
         else:
             for fs in sorted(db.keys()):
                 fs_menu.add_radiobutton(label=fs,
@@ -162,7 +148,6 @@ class Application(Frame):
 
     def open_picker(self):
         """Open font picker and update b1b display once picker is closed"""
-        self.welcome_lbl.destroy()
         w = FontPicker()
         w.wait_window(w)
         self.draw_menu_bar()
