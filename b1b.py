@@ -47,6 +47,9 @@ to some other font, probably heiti.
 in the blue bar below the text entry box.
 """
 # TODO: Add command to delete only current font set
+# TODO: Get rid of tearoff menus
+# TODO: Add warning that fonts in default set might not
+# be what they appear
 import re
 import math
 import shelve
