@@ -1,3 +1,6 @@
+# This is the format Ubuntu uses for the database
+font_sets
+
 *.db
 *.txt
 .DS_Store
