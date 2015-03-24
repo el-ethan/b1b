@@ -193,13 +193,15 @@ class Application(Frame):
         """Clear all user defined font sets"""
         db = shelve.open('font_sets')
         if not db:
+            db.close()
             return
         if (askokcancel("WARNING!",
                         "Are you sure you want to delete all sets?"
                         "\nThis action cannot be undone.",
                         default='cancel')):
-            with shelve.open('font_sets') as db:
-                db.clear()
+
+            db.clear()
+            db.close()
             self.draw_menu_bar()
             self.refresh_disp()
 
