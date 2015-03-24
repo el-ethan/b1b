@@ -15,7 +15,7 @@ display whatever characters you enter into the b1b app.
 
 * You can save multiple sets, and access them from the Font Sets menu.
 * The font picker can be accessed at any time from the File menu.
-* You can delete all your font sets using the 'Clear All Font Sets'
+* You can delete all your font sets using the 'Delete All User Font Sets'
 option from the File menu.
 
 ### b1b

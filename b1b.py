@@ -1,53 +1,13 @@
 #!/usr/bin/env python3
 """
-## b1b
-b1b, *bǐyìbǐ* (比一笔), is a GUI application for comparing Chinese fonts using Python 3 and tkinter.
-
-## Usage:
-Run the b1b.py script from the command line or however you usually run your Python scripts, e.g.:
-
-    $ python3 b1b.py
-
-### Font Sets
-
-When you run the b1b.py script for the first time, you will see a welcome
-message prompting you to define your first font set. This set will be used as
-the default font set. Font sets are lists of font names that will be used to
-display whatever characters you enter into the b1b app.
-
-* You can save multiple sets, and access them from the Font Sets menu.
-* The font picker can be accessed at any time from the File menu.
-* You can delete all your font sets using the 'Clear All Font Sets'
-option from the File menu.
-
-### b1b
-
-When you run the main app you will see the characters '比一笔' (the Chinese
-name of the app) displayed using all of the fonts in the default font list
-(the first list you defined from the font picker, or a sample font list if
-you haven't defined your own).
-
-Once you enter new characters in the text entry region and press 'Show', the
-display will update to show the new characters.
-
-* Currently, you can only display a max of 4 characters. All characters
-after 4 will be truncated, and the first 4 will be displayed. This is to
-preserve the readability of the display, but I intend to change this so
-that arbitrarily long strings can be displayed.
-* Because of a known issue with tkinter, the app does not work with the
-default Chinese input method on OSX, therefore characters must be pasted
-into the app if you are on a Mac. You should be able to type characters
-directly into the app on Windows (tested on Win 7) and Ubuntu (tested on
-Ubuntu 14.04).
-* You can mix Simplified and Traditional characters in your input if you
-wish. However, keep in mind that some characters may not display
-properly in fonts meant specifically for SC or TC, and will default
-to some other font, probably heiti.
-* Hover the mouse arrow over characters to display their font information
-in the blue bar below the text entry box.
+b1b, *bǐyìbǐ* (比一笔), is a GUI application for comparing Chinese fonts using
+Python 3 and tkinter
 """
 # TODO: Add command to delete only current font set
 # TODO: Get rid of tearoff menus
+# TODO: Fix display resize issue when fewer than 3 chars are shown with
+# welcome message
+# TODO: Allow multiple selections in font picker
 # TODO: Add warning that fonts in default set might not
 # be what they appear
 import re
@@ -56,7 +16,7 @@ import shelve
 import sys
 from tkinter import *
 import tkinter.font
-from tkinter.messagebox import showwarning, askokcancel, askyesno
+from tkinter.messagebox import showwarning, askokcancel
 
 # Sample font sets which can be used if no user sets defined
 osx_fonts = ['Heiti SC', 'Kaiti SC', 'Songti SC']
@@ -79,77 +39,60 @@ class Application(Frame):
         menu.add_cascade(label="File", menu=filemenu)
         filemenu.add_command(label="Open Font Picker",
                              command=self.open_picker)
-        filemenu.add_command(label="Clear All Font Sets",
+        filemenu.add_command(label="Delete All User Font Sets",
                              command=self.clear_sets)
         fs_menu = Menu(menu)
         menu.add_cascade(label="Font Sets", menu=fs_menu)
         # Add sample font sets
-        f = osx_fonts
-        fs_menu.add_radiobutton(label="Sample Font Set (OS X)",
-                                command=lambda f=f : self.set_sample_fs(f))
-        f = win7_fonts
-        fs_menu.add_radiobutton(label="Sample Font Set (Windows)",
-                                 command=lambda f=f : self.set_sample_fs(f))
+        self.fs_var = StringVar()
 
-        # Add radio button to menu for each key in font sets database
-        db = shelve.open('font_sets')
+        fs_menu.add_radiobutton(label="Sample Font Set (OS X)",
+                                variable=self.fs_var,
+                                value="Sample Font Set (OS X)",
+                                command=self.refresh_fs)
+        fs_menu.add_radiobutton(label="Sample Font Set (Windows)",
+                                variable=self.fs_var,
+                                value="Sample Font Set (Windows)",
+                                command=self.refresh_fs)
+
+        # Welcome message to display if not user defined font sets present
         msg = ("\n欢迎你! You have not defined your own font sets yet. "
                "To define a custom font set, \nselect Open Font Picker "
                "from the File Menu, pick some fonts, then name and "
                "save \nyour list! The first list you define will be the "
                "default list when you run b1b. Enjoy!\n")
+        # Add radio button to menu for each key in font sets database
+        db = shelve.open('font_sets')
         self.welcome_lbl = Label(self,
                             text=msg,
                             justify=LEFT,
                             padx=30,
                             font=('Avenir', 18))
         if not db and sys.platform == 'darwin':
+            self.fs_var.set("Sample Font Set (OS X)")
             self.current_fs = osx_fonts
             self.welcome_lbl.pack(side=BOTTOM, fill=BOTH, expand=True)
         elif not db:
             # Default to Windows fonts if not on Mac
+            # The Win fonts seem to work on Ubuntu as well, but don't all show
+            # up in font picker...
+            self.fs_var.set("Sample Font Set (Windows)")
             self.current_fs = win7_fonts
             self.welcome_lbl.pack(side=BOTTOM, fill=BOTH, expand=True)
         else:
-            for k in db.keys():
-                fs_menu.add_radiobutton(label=k,
-                                        command=lambda k=k : self.refresh_fs(k))
+            for fs in sorted(db.keys()):
+                fs_menu.add_radiobutton(label=fs,
+                                        variable=self.fs_var,
+                                        value=fs,
+                                        command=self.refresh_fs)
             db.close()
             # Set default font set
             with shelve.open('font_sets') as db:
                 keys = [key for key in db.keys()]
-                default_fs = keys[0]
+                default_fs = sorted(keys)[0]
+                # Set font set to first in A-Z sorted list of font sets
+                self.fs_var.set(default_fs)
                 self.current_fs = db[default_fs]
-
-    def open_picker(self):
-        """Open font picker and update b1b display once picker is closed"""
-        self.welcome_lbl.destroy()
-        w = FontPicker()
-        w.wait_window(w)
-        self.draw_menu_bar()
-        # TODO: fix it without exception handling
-        try:
-            self.refresh_disp()
-        except AttributeError:
-            pass
-
-    def set_sample_fs(self, fs):
-        self.display_frame.destroy()
-        # Update current font set
-        self.current_fs = fs
-        self.draw_char_disp(fs)
-
-    def refresh_fs(self, fs_name):
-        """Update current font set and redraw character display"""
-        self.display_frame.destroy()
-        with shelve.open('font_sets') as db:
-            new_fonts = db[fs_name]
-        root.title(fs_name)
-        self.current_fs_name = fs_name
-        # Update current font set
-        self.current_fs = new_fonts
-        self.draw_char_disp(new_fonts)
-
 
     def draw_widgets(self):
         """Draw operation widgets (buttons, entry) in app top section"""
@@ -169,16 +112,12 @@ class Application(Frame):
         quit = Button(top_left_frame, text='Quit', command=self.quit)
         show.pack(side=LEFT, fill=BOTH, expand=True)
         quit.pack(side=LEFT, fill=BOTH, expand=True)
-
+        default_msg = "Hover mouse arrow over characters to display font info"
         self.font_info = Label(self,
-                               text='font info',
+                               text=default_msg,
                                bg='cornflower blue',
                                relief=SUNKEN)
         self.font_info.pack(side=TOP, fill=BOTH, expand=True)
-
-    def refresh_disp(self):
-        self.display_frame.destroy()
-        self.draw_char_disp(self.current_fs)
 
     def draw_char_disp(self, font_set):
         """Set font display area"""
@@ -213,6 +152,38 @@ class Application(Frame):
         except StopIteration:
             pass
 
+    def open_picker(self):
+        """Open font picker and update b1b display once picker is closed"""
+        self.welcome_lbl.destroy()
+        w = FontPicker()
+        w.wait_window(w)
+        self.draw_menu_bar()
+        # TODO: fix it without exception handling
+        try:
+            self.refresh_disp()
+        except AttributeError:
+            pass
+
+    def refresh_fs(self):
+        """Update current font set and redraw character display"""
+        self.display_frame.destroy()
+        fs_name = self.fs_var.get()
+        if fs_name == "Sample Font Set (OS X)":
+            new_fonts = osx_fonts
+        elif fs_name == "Sample Font Set (Windows)":
+            new_fonts = win7_fonts
+        else:
+            with shelve.open('font_sets') as db:
+                new_fonts = db[fs_name]
+        # Update current font set
+        self.current_fs = new_fonts
+        self.draw_char_disp(new_fonts)
+
+    def refresh_disp(self):
+        """Update character display with current font set"""
+        self.display_frame.destroy()
+        self.draw_char_disp(self.current_fs)
+
     def gen_font(self, font_set):
         """Generate fonts for labels in display"""
         for font in font_set:
@@ -226,8 +197,15 @@ class Application(Frame):
         self.font_info.config(text=name)
 
     def clear_sets(self):
+        """Clear all user defined font sets"""
+        db = shelve.open('font_sets')
+        if not db:
+            showwarning(None,
+                        "You don't have any font sets to delete",
+                        default='ok')
+            return
         if (askokcancel("WARNING!",
-                        "Are you sure you want to clear all lists?"
+                        "Are you sure you want to delete all sets?"
                         "\nThis action cannot be undone.",
                         default='cancel')):
             with shelve.open('font_sets') as db:
@@ -235,14 +213,12 @@ class Application(Frame):
             self.draw_menu_bar()
             self.refresh_disp()
 
-
 class FontPicker(Toplevel):
-
+    """A font picker application called from within b1b"""
     def __init__(self, master=None):
         Toplevel.__init__(self, master)
         self.all_fonts = tkinter.font.families()
         self.draw_widgets()
-
 
     def draw_widgets(self):
         left_frame = LabelFrame(self)
@@ -264,6 +240,10 @@ class FontPicker(Toplevel):
 
         mid_frame = LabelFrame(self)
         mid_frame.pack(side=LEFT, fill=BOTH, expand=True)
+        Label(mid_frame,
+              text='Press Return to display selected font',
+              font=('Avenir', 18),
+              pady=20).pack(side=BOTTOM)
 
         self.fs_name_entry = Entry(mid_frame, fg='gray')
         self.fs_name_entry.pack(side=TOP, fill=BOTH, expand=True)
@@ -282,19 +262,14 @@ class FontPicker(Toplevel):
                             text="Add to Font Set",
                             command=self.add_fs)
         add_fs.pack(side=TOP, fill=BOTH, expand=True)
-
         remove_fs = Button(mid_frame,
                            text="Remove from Font Set",
                            command=self.remove_fs)
         remove_fs.pack(side=TOP, fill=BOTH, expand=True)
-
         save_fs = Button(mid_frame,
                       text="Save Font Set",
                       command=self.save_fs)
         save_fs.pack(side=TOP, fill=BOTH, expand=True)
-        # Display message when font is added
-        self.add_confirm = Label(mid_frame)
-        self.add_confirm.pack(side=TOP, fill=BOTH, expand=True)
 
         self.right_frame = Frame(self)
         self.right_frame.pack(side=LEFT, fill=BOTH, expand=True)
@@ -326,7 +301,6 @@ class FontPicker(Toplevel):
         self.font_set.bind('<Return>', self.change_font)
 
     def quit_picker(self):
-        first_time = False
         self.distroy()
 
     def remove_fs(self):
@@ -342,7 +316,7 @@ class FontPicker(Toplevel):
         """
         fonts_to_save = self.font_set.get(0, END)
         fs_name = self.fs_name_entry.get()
-        # Show warning if default name hasn't changed or no name is defined
+        # Show warning if default name hasn't changed or no name is specified
         if not fonts_to_save:
             showwarning("No Fonts Specified",
                         "Please add fonts to your set before saving",
@@ -351,7 +325,6 @@ class FontPicker(Toplevel):
             showwarning("Name of Font Set Not Specified",
                         "Please enter a name for this font set",
                         default='ok')
-
         else:
             with shelve.open('font_sets') as db:
                 db[fs_name] = set(fonts_to_save)
@@ -359,6 +332,7 @@ class FontPicker(Toplevel):
 
 if __name__ == '__main__':
     root = Tk()
+    root.title('b1b')
     root.resizable(0, 0)
     app = Application(master=root)
     app.mainloop()
